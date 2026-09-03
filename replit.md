@@ -1,6 +1,6 @@
-# [Project name]
+# Weather AI
 
-_Replace the heading above with the project's name, and this line with one sentence describing what this app does for users._
+Weather AI turns the forecast into a calm, useful daily brief with location search, current conditions, hourly and seven-day outlooks, and practical weather-aware guidance.
 
 ## Run & Operate
 
@@ -22,23 +22,32 @@ _Replace the heading above with the project's name, and this line with one sente
 
 ## Where things live
 
-_Populate as you build — short repo map plus pointers to the source-of-truth file for DB schema, API contracts, theme files, etc._
+- `artifacts/weather-ai/src/App.tsx` — the single-page weather experience and local forecast data
+- `artifacts/weather-ai/src/index.css` — visual theme, typography, responsive layout, and motion
+- `artifacts/weather-ai/vite.config.ts` — Vite app configuration and artifact routing
+- `artifacts/api-server` — shared API service scaffold; not required by the first Weather AI build
 
 ## Architecture decisions
 
-_Populate as you build — non-obvious choices a reader couldn't infer from the code (3-5 bullets)._
+- The first release is frontend-only so the core experience works instantly without external weather credentials.
+- Forecast data is local and structured by city to keep location switching and unit conversion deterministic.
+- The interface treats AI as interpretation and practical guidance layered on top of forecast data, not as a separate chat surface.
 
 ## Product
 
-_Describe the high-level user-facing capabilities of this app once they exist._
+- Search and switch between supported cities.
+- View current conditions, feels-like temperature, wind, humidity, rain chance, and visibility.
+- Read an AI-style day brief and contextual insight.
+- Scan the next several hours and the seven-day outlook.
+- Toggle Celsius/Fahrenheit and refresh the displayed forecast state.
 
 ## User preferences
 
-_Populate as you build — explicit user instructions worth remembering across sessions._
+No project-specific preferences recorded yet.
 
 ## Gotchas
 
-_Populate as you build — sharp edges, "always run X before Y" rules._
+- The web workflow must provide `PORT` and `BASE_PATH`; use the managed Weather AI workflow for previews.
 
 ## Pointers
 

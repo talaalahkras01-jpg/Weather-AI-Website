@@ -1,0 +1,28 @@
+kind = "web"
+previewPath = "/"
+title = "Weather AI"
+description = "A thoughtful weather companion that turns the forecast into clear, useful guidance for the day ahead, with live-feeling conditions, hourly outlooks, and AI interpretation."
+version = "1.0.0"
+id = "artifacts/weather-ai"
+router = "path"
+
+[[services]]
+name = "web"
+paths = [ "/" ]
+localPort = 21192
+
+[services.development]
+run = "pnpm --filter @workspace/weather-ai run dev"
+
+[services.production]
+build = [ "pnpm", "--filter", "@workspace/weather-ai", "run", "build" ]
+serve = "static"
+publicDir = "artifacts/weather-ai/dist/public"
+
+[[services.production.rewrites]]
+from = "/*"
+to = "/index.html"
+
+[services.env]
+PORT = "21192"
+BASE_PATH = "/"
