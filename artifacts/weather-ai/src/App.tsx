@@ -1,4 +1,4 @@
-import { type FormEvent, type ReactNode, useMemo, useState } from 'react';
+﻿import { type FormEvent, type ReactNode, useMemo, useState, useEffect } from 'react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { ErrorBoundary } from '@/components/error-boundary';
 import { Toaster } from '@/components/ui/toaster';
@@ -13,6 +13,7 @@ import {
   CloudDrizzle,
   CloudRain,
   CloudSun,
+  CreditCard,
   Compass,
   Droplets,
   Globe2,
@@ -283,6 +284,40 @@ function Home() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
+    const [isPremium, setIsPremium] = useState<boolean>(() => {
+    if (typeof window !== 'undefined') {
+      return localStorage.getItem('weather_ai_is_premium') === 'true';
+    }
+    return false;
+  });
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    fetch('/api/user-status?email=demo@weather-ai.local')
+      .then(r => r.json())
+      .then(d => {
+        if (d?.user?.is_premium) {
+          setIsPremium(true);
+          localStorage.setItem('weather_ai_is_premium', 'true');
+        }
+      })
+      .catch(() => {});
+
+    try {
+      const sse = new EventSource('/api/payment-stream');
+      sse.onmessage = (e) => {
+        try {
+          const data = JSON.parse(e.data);
+          if (data.type === 'PAYMENT_SUCCESS') {
+            setIsPremium(true);
+            localStorage.setItem('weather_ai_is_premium', 'true');
+          }
+        } catch (err) {}
+      };
+      return () => sse.close();
+    } catch (err) {}
+  }, []);
+
   const weather = cityData[city];
   const suggestions = useMemo(() => suggestedCities.filter((item) => item.toLowerCase().includes(search.trim().toLowerCase())), [search]);
 
@@ -316,6 +351,27 @@ function Home() {
               <p className="text-[15px] font-extrabold tracking-[-.03em] text-[hsl(var(--foreground))]">weather<span className="text-[hsl(var(--primary))]">.ai</span></p>
               <p className="mono hidden text-[9px] uppercase tracking-[.17em] text-[hsl(var(--muted-foreground))] sm:block">read the sky</p>
             </div>
+          </div>
+                    {/* Stripe Payment Button / Premium Badge */}
+          <div className="flex items-center gap-2">
+            {isPremium ? (
+              <div data-testid="badge-premium" className="flex items-center gap-1.5 rounded-full border border-emerald-500/40 bg-emerald-500/15 px-3 py-1.5 text-xs font-bold text-emerald-600 dark:text-emerald-400">
+                <span className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
+                <span>ðŸ‘‘ Pro Member</span>
+              </div>
+            ) : (
+              <a
+                href="https://buy.stripe.com/test_14A4gB3DhcTd0OK4vu8Vi00"
+                target="_blank"
+                rel="noopener noreferrer"
+                data-testid="button-stripe-payment"
+                className="flex items-center gap-2 rounded-full bg-gradient-to-r from-[#635bff] to-[#0070f3] px-3.5 py-1.5 text-xs font-bold text-white shadow-[0_4px_14px_rgba(99,91,255,0.35)] transition-all hover:-translate-y-0.5 hover:shadow-[0_6px_20px_rgba(99,91,255,0.45)]"
+              >
+                <CreditCard size={14} />
+                <span>Ø¯ÙØ¹ Ø¹Ø¨Ø± Stripe</span>
+                <span className="rounded-full bg-white/20 px-1.5 py-0.2 text-[9px] font-mono">ØªØ¬Ø±ÙŠØ¨ÙŠ</span>
+              </a>
+            )}
           </div>
           <div className="hidden items-center gap-2 md:flex">
             <span className="mono mr-2 text-[10px] uppercase tracking-[.15em] text-[hsl(var(--muted-foreground))]">Personal forecast</span>
@@ -352,6 +408,42 @@ function Home() {
             </div>
           </div>
         )}
+
+                {/* Stripe Pro Promotion Card */}
+        <div data-testid="card-pro-banner" className="my-6 overflow-hidden rounded-[2rem] border border-[hsl(var(--primary)/.2)] bg-gradient-to-r from-[hsl(203_48%_20%)] to-[hsl(var(--primary))] p-6 text-white shadow-xl">
+          <div className="flex flex-col justify-between gap-4 md:flex-row md:items-center">
+            <div>
+              <span className="inline-block rounded-full bg-[hsl(var(--accent))] px-3 py-1 font-mono text-[10px] font-bold uppercase tracking-wider text-[hsl(var(--accent-foreground))]">
+                {isPremium ? 'âœ¨ VIP ACTIVE' : 'WEATHER AI PRO'}
+              </span>
+              <h3 className="mt-2 text-xl font-bold font-serif">
+                {isPremium ? 'Ø¹Ø¶ÙˆÙŠØ© Weather AI Pro Ù…ÙØ¹Ù‘Ù„Ø© Ø¨Ù†Ø¬Ø§Ø­!' : 'Ø§Ø­ØµÙ„ Ø¹Ù„Ù‰ Ø§Ù„ØªÙˆÙ‚Ø¹Ø§Øª Ø§Ù„Ø°ÙƒÙŠØ© Ø§Ù„Ù…ØªÙ‚Ø¯Ù…Ø© ÙˆØ±Ø§Ø¯Ø§Ø± Ø§Ù„Ø¹ÙˆØ§ØµÙ'}
+              </h3>
+              <p className="mt-1 text-sm text-white/80">
+                {isPremium
+                  ? 'ØªÙ… ØªØ£ÙƒÙŠØ¯ Ø§Ù„Ø¯ÙØ¹ Ø¹Ø¨Ø± Stripe ÙˆØªÙØ¹ÙŠÙ„ Ø§Ù„ØªÙˆÙ‚Ø¹Ø§Øª Ø§Ù„Ø¯Ù‚ÙŠÙ‚Ø© 14 ÙŠÙˆÙ…Ø§Ù‹ ÙˆØªØ­Ù„ÙŠÙ„ Ø§Ù„Ù…Ù„Ø§Ø¨Ø³ Ø§Ù„Ù…Ø®ØµØµ.'
+                  : 'ØªÙˆÙ‚Ø¹Ø§Øª Ø¯Ù‚ÙŠÙ‚Ø© Ø¨Ø§Ù„Ø³Ø§Ø¹Ø©ØŒ ØªÙ†Ø¨ÙŠÙ‡Ø§Øª Ø§Ù„Ø·Ù‚Ø³ Ø§Ù„Ø³ÙŠØ¦ Ø§Ù„Ù…ÙØ§Ø¬Ø¦ØŒ ÙˆØ¯Ø¹Ù… Ù…Ø³ØªÙ…Ø± Ø¨Ø¯ÙˆÙ† Ø¥Ø¹Ù„Ø§Ù†Ø§Øª.'}
+              </p>
+            </div>
+            <div className="flex items-center gap-3">
+              {!isPremium ? (
+                <a
+                  href="https://buy.stripe.com/test_14A4gB3DhcTd0OK4vu8Vi00"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center gap-2 rounded-xl bg-white px-5 py-3 text-xs font-extrabold text-[hsl(203_48%_25%)] shadow-md transition-all hover:bg-slate-100 hover:shadow-lg"
+                >
+                  <CreditCard size={15} />
+                  <span>ØªØ±Ù‚ÙŠØ© Ø§Ù„Ø¢Ù† Ø¹Ø¨Ø± Stripe (Ø±Ø§Ø¨Ø· ØªØ¬Ø±ÙŠØ¨ÙŠ)</span>
+                </a>
+              ) : (
+                <div className="rounded-xl bg-emerald-500 px-4 py-2 text-xs font-bold text-white">
+                  âœ“ Ø§Ø´ØªØ±Ø§Ùƒ Ù†Ø´Ø· (VIP)
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
 
         <section className="stagger-in mx-auto max-w-6xl pt-8 sm:pt-12">
           <div className="flex flex-col justify-between gap-6 lg:flex-row lg:items-end">
