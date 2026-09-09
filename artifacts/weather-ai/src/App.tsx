@@ -284,13 +284,12 @@ function Home() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
-    const [isPremium, setIsPremium] = useState<boolean>(() => {
-    if (typeof window !== 'undefined') {
-      return localStorage.getItem('weather_ai_is_premium') === 'true';
-    }
-    return false;
-  });
-
+   const [isPremium, setIsPremium] = useState<boolean>(() => {
+  if (typeof window !== 'undefined') {
+    return localStorage.getItem('weather_ai_is_premium') === 'true';
+  }
+  return false;
+});
   useEffect(() => {
     if (typeof window === 'undefined') return;
     fetch('/api/user-status?email=demo@weather-ai.local')
